@@ -76,6 +76,19 @@
     input[type="submit"]:hover {
       background-color: #45a049;
     }
+
+    #loadConfigButton {
+    background-color: red;
+     color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+}
+
+#loadConfigButton:hover {
+    background-color: darkred;
+}
   </style>
 </head>
 
@@ -155,6 +168,8 @@
     <input type="number" id="Slot_PLC" name="Slot_PLC"><br><br>
   
     <input type="submit" value="Save Configuration">
+   
+    <button id="loadConfigButton" style="background-color: red; color: white;">Load Configuration</button>
   </form>
 
 
@@ -173,7 +188,8 @@
     const sendWriteSingle = document.getElementById('sendWriteSingle');
     const sendWriteMultiple = document.getElementById('sendWriteMultiple');
     const configForm = document.getElementById('configForm');
-
+    const loadConfigButton = document.getElementById('loadConfigButton');
+    let onloadConfig = false;
 
 
     let port;
@@ -261,60 +277,64 @@
     return frame;
   }
 
+  function convertToIPAddress(byteArray) {
+      if (byteArray.length !== 4) {
+        throw new Error('Byte array must contain exactly 4 elements.');
+      }
+
+      return byteArray.join('.');
+    }
+    
+    function updateConfiguration(frame) 
+    {
 
 
-  
-/*
-    function updateDataTable(registerData) {
-        const dataTable = document.getElementById('dataTable');
-        const startAddress = parseInt(document.getElementById('startAddress').value);
-
-        // Clear existing rows
-        while (dataTable.rows.length > 1) {
-          dataTable.deleteRow(1);
-        }
-
-        const numRegisters = registerData[2]; // Get the number of registers from Address 3
-
-        // Add new rows for Data portion of the frame
-        for (let index = 0; index < numRegisters; index=index+2) {
-          const newRow = dataTable.insertRow(-1);
-          const addressCell = newRow.insertCell(0);
-          const valueCell = newRow.insertCell(1);
-          const newValueCell = newRow.insertCell(2);
-          const updateButtonCell = newRow.insertCell(3);
-
-          const currentAddress = startAddress + index;
-          // const currentValue = (registerData[index * 2 + 4] << 8) | registerData[index * 2 + 5];
-          
-          const currentValue = (registerData[currentAddress + 3] << 8) | registerData[currentAddress + 4];
-
-          addressCell.innerHTML = currentAddress;
-          valueCell.innerHTML = currentValue;
-
-          const inputElement = document.createElement('input');
-          inputElement.type = 'number';
-          inputElement.value = currentValue;
-          newValueCell.appendChild(inputElement);
-
-          const updateButton = document.createElement('button');
-          updateButton.textContent = 'Update';
-          updateButton.addEventListener('click', () => {
-            const newValue = parseInt(inputElement.value);
-            console.log("updateButton", newValue);
-            if (!isNaN(newValue)) {
-              // Update the valueCell with the new value
-              valueCell.innerHTML = newValue;
-              //inputElement.value = '';
+      let modbusDeviceIP  = [];
+      let moduleIPAddress = [];
+      let dnsAddress = [];
+      let gatewayAddress = [];
+      let subnetAddress = [];
+      let protocolBIT = [];
 
 
-              // You can add logic here to send the updated value to your device
-            }
-          });
-          updateButtonCell.appendChild(updateButton);
+      
+      const dataArrays = [modbusDeviceIP, moduleIPAddress, dnsAddress, gatewayAddress, subnetAddress, protocolBIT];
+      console.log('dataArrays.length', dataArrays.length, frame);
+      const startIndexes = [3, 11, 19, 27, 35, 43];
+      for (let i = 0; i < dataArrays.length; i++) {
+        
+        for (let j = 0; j < 4; j++) {
+          dataArrays[i][j] = (frame[startIndexes[i] + j * 2] << 8) | frame[startIndexes[i] + j * 2 + 1];
+          console.log('dataArrays[i][j]:', startIndexes[i] , dataArrays[i][j]);
         }
       }
-      */
+
+      console.log('Modbus Device IP:', modbusDeviceIP);
+      console.log('Module IP Address:', moduleIPAddress);
+      console.log('DNS Address:', dnsAddress);
+      console.log('Gateway Address:', gatewayAddress);
+      console.log('Subnet Address:', subnetAddress);
+      console.log('protocolBIT:', protocolBIT);
+   
+
+      document.getElementById('ModbusDeviceIP').value = convertToIPAddress(modbusDeviceIP);
+      document.getElementById('moduleIPAddress').value = convertToIPAddress(moduleIPAddress);
+      document.getElementById('dnsAddress').value = convertToIPAddress(dnsAddress);
+      document.getElementById('gatewayAddress').value = convertToIPAddress(gatewayAddress);
+      document.getElementById('subnetAddress').value = convertToIPAddress(subnetAddress);
+      
+      document.getElementById('protocol').value = protocolBIT[0];
+      document.getElementById('DBNum').value = protocolBIT[1];
+      document.getElementById('Rack_PLC').value = protocolBIT[2];
+      document.getElementById('Slot_PLC').value = protocolBIT[3];
+
+     
+ 
+    
+    // ... อัปเดตข้อมูล IP address อื่น ๆ ในฟอร์ม ...
+    }
+
+ 
 
 
     connectBtn.addEventListener('click', async () => {
@@ -367,7 +387,7 @@
      
     function createModbusRTUFrameWrite(slaveId, startAddress, values) {
         const numRegisters = values.length;
-        console.log("numRegisters", numRegisters);
+        //console.log("numRegisters", numRegisters);
         const frameLength = 9 + numRegisters * 2; // Length of frame excluding CRC
 
         const frame = new Uint8Array(frameLength);
@@ -385,7 +405,7 @@
           frame[index] = (value >> 8) & 0xFF;
           frame[index + 1] = value & 0xFF;
         }
-        console.log(frame);
+        //console.log(frame);
         const crc = crc16Write(frame);
         frame[frameLength - 2] = crc & 0xFF;
         frame[frameLength - 1] = (crc >> 8) & 0xFF;
@@ -474,11 +494,18 @@
           for (let i = 0; i < frame.length; i++) {
             frameStr += frame[i].toString(16).padStart(2, '0') + " ";
           }
-          console.log(frameStr);
+         // console.log(frameStr);
           output.textContent += frameStr;
           // ตั้งค่า scrollbar ให้เลื่อนมาที่ล่างสุด
          output.scrollTop = output.scrollHeight;
+         if(onloadConfig)
+         {
+           updateConfiguration(frame);
+           onloadConfig = false;
+         }
          updateDataTable(frame);
+
+        
         }
 
 
@@ -580,7 +607,35 @@
             }
           });
 
-       
+          
+            loadConfigButton.addEventListener('click', async () => {
+              // ทำงานเมื่อปุ่ม "Load Configuration" ถูกคลิก
+              // เช่น อ่านค่าจากการตั้งค่าที่บันทึกและแสดงในฟอร์ม
+             
+              console.log("loadConfigButton");
+               if (port) {
+                const writer = port.writable.getWriter();
+
+                const fucntion = 0x03;
+                const slaveId = parseInt(document.getElementById('slaveId').value);
+                const startAddress = 0;
+                const numRegisters = 24;
+
+
+                const frame = createModbusRTUFrame(slaveId, fucntion, startAddress, numRegisters);
+                console.log('frame', frame);
+                displayFrameBytesSend(frame);
+
+
+                await writer.write(frame);
+                writer.releaseLock();
+                 onloadConfig = true;
+                // input.value = '';  
+              }
+
+
+
+            });
         
           configForm.addEventListener('submit', async () => {
             event.preventDefault(); // Prevent the form from submitting normally
@@ -600,27 +655,52 @@
 
 
               const slaveId = parseInt(document.getElementById('slaveId').value);
-              const startAddress = parseInt(document.getElementById('startAddress').value);
+              let startAddress = parseInt(document.getElementById('startAddress').value);
 
-              const values = [];
+              let values = [];
               // Loop through the table rows and extract values from newValueCell
             
-              // ใช้ Regular Expression ในการเลือกเฉพาะตัวเลข
-              const numericPart = ModbusDeviceIP.match(/\d+/g);
-              const ModbusDeviceIPNumber = numericPart.join('');
-
-              console.log(ModbusDeviceIPNumber);
-              // const frame = createModbusRTUFrameWrite(slaveId, startAddress, values);
-              // const frame = createModbusRTUFrame(slaveId, startAddress, values, numRegisters);
-
-              // console.log('frame', createModbusRTUFrameForIP(ModbusDeviceIP));
-              console.log("ModbusDeviceIP", createModbusRTUFrameWrite(slaveId, startAddress, numericPart));
-              
-              const frame = createModbusRTUFrameWrite(slaveId, startAddress, numericPart);
+            
+            
+              startAddress = 0;
+              let frame = createModbusRTUFrameWrite(slaveId, startAddress, ModbusDeviceIP.match(/\d+/g));
               displayFrameBytesSend(frame);
-
-
               await writer.write(frame);
+              await new Promise(resolve => setTimeout(resolve, 200)); // รอสักครู่ก่อนส่งต่อ
+
+              startAddress = startAddress + 4 ;
+              frame = createModbusRTUFrameWrite(slaveId, startAddress, moduleIPAddress.match(/\d+/g));
+              displayFrameBytesSend(frame);
+              await writer.write(frame);
+              await new Promise(resolve => setTimeout(resolve, 200)); // รอสักครู่ก่อนส่งต่อ
+
+              startAddress = startAddress + 4;
+              frame = createModbusRTUFrameWrite(slaveId, startAddress, dnsAddress.match(/\d+/g));
+              displayFrameBytesSend(frame);
+              await writer.write(frame);
+              await new Promise(resolve => setTimeout(resolve, 200)); // รอสักครู่ก่อนส่งต่อ
+
+              startAddress = startAddress + 4;
+              frame = createModbusRTUFrameWrite(slaveId, startAddress, gatewayAddress.match(/\d+/g));
+              displayFrameBytesSend(frame);
+              await writer.write(frame);
+              await new Promise(resolve => setTimeout(resolve, 200)); // รอสักครู่ก่อนส่งต่อ
+
+              startAddress = startAddress + 4;
+              frame = createModbusRTUFrameWrite(slaveId, startAddress, subnetAddress.match(/\d+/g));
+              displayFrameBytesSend(frame);
+              await writer.write(frame);
+              await new Promise(resolve => setTimeout(resolve, 200)); // รอสักครู่ก่อนส่งต่อ
+
+              values = [protocol, DBNum, Rack_PLC, Slot_PLC];
+              console.log(values);
+              startAddress = startAddress + 4;
+              frame = createModbusRTUFrameWrite(slaveId, startAddress, values);
+              displayFrameBytesSend(frame);
+              await writer.write(frame);
+              await new Promise(resolve => setTimeout(resolve, 100)); // รอสักครู่ก่อนส่งต่อ
+
+
               writer.releaseLock();
 
               // input.value = '';
