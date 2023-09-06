@@ -2,712 +2,174 @@
 <html>
 
 <head>
+  <link rel="stylesheet" type="text/css" href="./styles.css">
   <title>Web Serial Monitor</title>
   <style>
-    #terminal div {
-    color: gray;
-}
-
-#terminal div.out {
-    color: red;
-}
-
-#terminal div.in {
-    color: blue;
-}
-
-
-.input-group {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-.input-group label {
-    flex: 1;
-    margin-right: 10px;
-}
-
-.input-group input {
-    flex: 2;
-    width: 100%;
-    /* ทำให้ความยาวของ Input เต็มขอบ */
-}
-
-
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-    }
-  
-    h2 {
-      margin-bottom: 10px;
-    }
-  
-    form {
-      border: 1px solid #ccc;
-      padding: 20px;
-      border-radius: 5px;
-      width: 400px;
-      margin: 0 auto;
-    }
-  
-    label {
-      display: block;
-      margin-bottom: 5px;
-    }
-  
-    input[type="text"],
-    input[type="number"] {
-      width: 100%;
-      padding: 5px;
-      margin-bottom: 10px;
-    }
-  
-    input[type="submit"] {
-      background-color: #4CAF50;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-  
-    input[type="submit"]:hover {
-      background-color: #45a049;
-    }
-
-    #loadConfigButton {
-    background-color: red;
-     color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-}
-
-#loadConfigButton:hover {
-    background-color: darkred;
-}
+   
   </style>
 </head>
 
 <body>
 
-  
 
-  <button id="connectBtn">Connect</button>
-  <button id="disconnectBtn" disabled>Disconnect</button>
-  <select id="baudRateSelect">
-    <option value="9600">9600</option>
-    <option selected value="115200">115200</option>
-    <option value="57600">57600</option>
-  </select>
-  
-
-  <div class="input-group">
-    <label for="slaveId">Slave ID:</label>
-    <input type="number" id="slaveId" name="slaveId" value="1">
-    <label for="startAddress">Start Address:</label>
-    <input type="number" id="startAddress" name="startAddress" value="0">
-    <label for="numRegisters">Number of Registers:</label>
-    <input type="number" id="numRegisters" name="numRegisters" value="2">
+    <button id="connectBtn">Connect</button>
+    <button id="disconnectBtn" disabled>Disconnect</button>
+    <select id="baudRateSelect">
+      <option value="9600">9600</option>
+      <option selected value="115200">115200</option>
+      <option value="57600">57600</option>
+    </select>
+    <button id="resetBtn" disabled>Reset board</button>
+  <div class="tab">
+    <button class="tab-button" onclick="openTab(event, 'networkTab')">EDGE.V3 Networking</button>
+    <button class="tab-button" onclick="openTab(event, 'configTab')">Device Configuration</button>
+    <button class="tab-button" onclick="openTab(event, 'modbusTab')">Modbus RTU Table</button>
   </div>
   
-
-
-
-  <button id="sendReadInput">Read input register</button>
-  <button id="sendReadHolding">Read Holding register</button>
-  <button id="sendWriteSingle">Write single register</button>
-  <button id="sendWriteMultiple">Write multiple register</button>
-  <h2>Register Address Table</h2>
   
-  <table id="dataTable">
-    <tr>
-      <th>Address</th>
-      <th>Value</th>
-    </tr>
-  </table>
-
-  <h2>Device Configuration</h2>
-  <form id="configForm">
-    <label for="ModbusDeviceIP">Modbus Device IP:</label>
-    <input type="text" id="ModbusDeviceIP" name="ModbusDeviceIP" pattern="^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$" required>
-    <small>Format: xxx.xxx.xxx.xxx</small>
+  <div id="networkTab" class="tab-content">
+    <h2>Netwrok Configuration</h2>
+    <form id="networkForm">
+      <label for="networkType">Network Type:</label>
+      <select id="networkType" name="networkType" onchange="toggleConfigFields()">
+        <option value="static">Ethernet Static</option>
+        <option value="dhcp">Ethernet DHCP</option>
+        <option value="wifi">Wifi</option>
+      </select>
     
-    <label for="moduleIPAddress">Module IP Address:</label>
-    <input type="text" id="moduleIPAddress" name="moduleIPAddress" pattern="^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$" required>
-    <small>Format: xxx.xxx.xxx.xxx</small>
+      <div id="staticConfig" >
+        <label for="ipAddress">IP Address:</label>
+        <input type="text" id="ipAddress" name="ipAddress" pattern="^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$">
+        <small>Format: xxx.xxx.xxx.xxx</small>
     
-    <label for="dnsAddress">DNS Address:</label>
-    <input type="text" id="dnsAddress" name="dnsAddress" pattern="^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$" required>
-    <small>Format: xxx.xxx.xxx.xxx</small>
+        <label for="subnetMask">Subnet Mask:</label>
+        <input type="text" id="subnetMask" name="subnetMask" pattern="^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$">
+        <small>Format: xxx.xxx.xxx.xxx</small>
     
-    <label for="gatewayAddress">Gateway Address:</label>
-    <input type="text" id="gatewayAddress" name="gatewayAddress" pattern="^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$" required>
-    <small>Format: xxx.xxx.xxx.xxx</small>
+        <label for="gateway">Gateway:</label>
+        <input type="text" id="gateway" name="gateway" pattern="^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$">
+        <small>Format: xxx.xxx.xxx.xxx</small>
+      </div>
     
-    <label for="subnetAddress">Subnet Address:</label>
-    <input type="text" id="subnetAddress" name="subnetAddress" pattern="^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$" required>
-    <small>Format: xxx.xxx.xxx.xxx</small>
+      <div id="dhcpConfig" style="display: none;">
+        <p>Network settings will be obtained automatically through DHCP.</p>
+      </div>
+    
+      <div id="wifiConfig" style="display: none;">
+        <h1>Wi-Fi Configuration</h1>
+        <form id="wifiForm">
+          <label for="ssid">SSID:</label>
+          <input type="text" id="ssid" name="ssid" required><br><br>
+        
+          <label for="password">Password:</label>
+          <input type="text" id="password" name="password" required><br><br>
+        
+      
+         
+        </form>
+
+       
+
+      </div>
+     
+      <button id="saveNetwork" style="background-color: #4CAF50; color: white;">Save Configuration</button>
+      <button id="loadNetwork" style="background-color: red; color: white;">Load Configuration</button>
+      
+    </form>
+  </div>
+
+  <div id="configTab" class="tab-content">
+    <!-- เนื้อหาของแท็บ "Device Configuration" จะถูกแสดงที่นี่ -->
+
+    <h2>Device Configuration</h2>
+    <form id="configForm">
+      <label for="ModbusDeviceIP">Modbus Device IP:</label>
+      <input type="text" id="ModbusDeviceIP" name="ModbusDeviceIP" pattern="^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$" required>
+      <small>Format: xxx.xxx.xxx.xxx</small>
+    
+      <label for="moduleIPAddress">Module IP Address:</label>
+      <input type="text" id="moduleIPAddress" name="moduleIPAddress" pattern="^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$" required>
+      <small>Format: xxx.xxx.xxx.xxx</small>
+    
+      <label for="dnsAddress">DNS Address:</label>
+      <input type="text" id="dnsAddress" name="dnsAddress" pattern="^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$" required>
+      <small>Format: xxx.xxx.xxx.xxx</small>
+    
+      <label for="gatewayAddress">Gateway Address:</label>
+      <input type="text" id="gatewayAddress" name="gatewayAddress" pattern="^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$" required>
+      <small>Format: xxx.xxx.xxx.xxx</small>
+    
+      <label for="subnetAddress">Subnet Address:</label>
+      <input type="text" id="subnetAddress" name="subnetAddress" pattern="^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$" required>
+      <small>Format: xxx.xxx.xxx.xxx</small>
+    
+      <label for="protocol">Protocol:</label>
+      <select id="protocol" name="protocol" required>
+        <option value="0">Modbus TCP</option>
+        <option value="1">PROFINET</option>
+      </select>
+      <br><br>
+      <label for="DBNum">DB Number:</label>
+      <input type="number" id="DBNum" name="DBNum"><br><br>
+    
+      <label for="Rack_PLC">Rack PLC:</label>
+      <input type="number" id="Rack_PLC" name="Rack_PLC"><br><br>
+    
+      <label for="Slot_PLC">Slot PLC:</label>
+      <input type="number" id="Slot_PLC" name="Slot_PLC"><br><br>
+    
+      <input type="submit" value="Save Configuration">
+    
+      <button id="loadConfigButton" style="background-color: red; color: white;">Load Configuration</button>
+    </form>
+
+  </div>
   
-    <label for="protocol">Protocol:</label>
-    <select id="protocol" name="protocol" required>
-      <option value="0">Modbus TCP</option>
-      <option value="1">PROFINET</option>
-    </select>
-    <br><br>
-    <label for="DBNum">DB Number:</label>
-    <input type="number" id="DBNum" name="DBNum"><br><br>
+  <div id="modbusTab" class="tab-content" style="display: none;">
+    <!-- เนื้อหาของแท็บ "Modbus RTU Table" จะถูกแสดงที่นี่ -->
+
+    
+    <div class="input-group">
+      <label for="slaveId">Slave ID:</label>
+      <input type="number" id="slaveId" name="slaveId" value="1">
+      <label for="startAddress">Start Address:</label>
+      <input type="number" id="startAddress" name="startAddress" value="0">
+      <label for="numRegisters">Number of Registers:</label>
+      <input type="number" id="numRegisters" name="numRegisters" value="2">
+    </div>
+
+    <button id="sendReadInput">Read input register</button>
+    <button id="sendReadHolding">Read Holding register</button>
+    <button id="sendWriteSingle">Write single register</button>
+    <button id="sendWriteMultiple">Write multiple register</button>
+    <h2>Register Address Table</h2>
+    
+    <table id="dataTable">
+      <tr>
+        <th>Address</th>
+        <th>Value</th>
+      </tr>
+    </table>
+    
+    
+    
+    
+    <h2>Frame Output:</h2>
+    <textarea id="frameOutput" rows="10" cols="50"></textarea>
+
+  </div>
+
   
-    <label for="Rack_PLC">Rack PLC:</label>
-    <input type="number" id="Rack_PLC" name="Rack_PLC"><br><br>
-  
-    <label for="Slot_PLC">Slot PLC:</label>
-    <input type="number" id="Slot_PLC" name="Slot_PLC"><br><br>
-  
-    <input type="submit" value="Save Configuration">
-   
-    <button id="loadConfigButton" style="background-color: red; color: white;">Load Configuration</button>
-  </form>
 
 
-  <h2>Frame Output:</h2>
-  <textarea id="frameOutput" rows="10" cols="50"></textarea>
 
+  
 
   <script>
-    const connectBtn = document.getElementById('connectBtn');
-    const disconnectBtn = document.getElementById('disconnectBtn');
-    const baudRateSelect = document.getElementById('baudRateSelect');
-    const output = document.getElementById('frameOutput');
     
-    const sendReadInput = document.getElementById('sendReadInput');
-    const sendReadHolding = document.getElementById('sendReadHolding');
-    const sendWriteSingle = document.getElementById('sendWriteSingle');
-    const sendWriteMultiple = document.getElementById('sendWriteMultiple');
-    const configForm = document.getElementById('configForm');
-    const loadConfigButton = document.getElementById('loadConfigButton');
-    let onloadConfig = false;
-
-
-    let port;
-    
-
-    function updateDataTable(registerData) {
-        const dataTable = document.getElementById('dataTable');
-        const startAddress = parseInt(document.getElementById('startAddress').value);
-
-        // Clear existing rows
-        while (dataTable.rows.length > 1) {
-          dataTable.deleteRow(1);
-        }
-
-        const numRegisters = registerData[2]; // Get the number of registers from Address 3
-
-        // Add new rows for Data portion of the frame
-        const updateButton = document.createElement('button');
-        updateButton.textContent = 'Update All';
-
-        for (let index = 0; index < numRegisters; index = index + 2) {
-          const newRow = dataTable.insertRow(-1);
-          const addressCell = newRow.insertCell(0);
-          const valueCell = newRow.insertCell(1);
-          const newValueCell = newRow.insertCell(2);
-
-          const currentAddress = startAddress + index;
-          const currentValue = (registerData[currentAddress + 3] << 8) | registerData[currentAddress + 4];
-
-          addressCell.innerHTML = currentAddress;
-          valueCell.innerHTML = currentValue;
-
-          const inputElement = document.createElement('input');
-          inputElement.type = 'number';
-          inputElement.value = currentValue;
-          newValueCell.appendChild(inputElement);
-        }
-
-        // Add update button event listener
-        updateButton.addEventListener('click', () => {
-          const newValueElements = dataTable.querySelectorAll('input[type="number"]');
-          newValueElements.forEach((inputElement, index) => {
-            const newValue = parseInt(inputElement.value);
-            if (!isNaN(newValue)) {
-               const currentAddress = startAddress + index;
-               registerData[currentAddress + 3] = (newValue >> 8) & 0xFF; // High byte
-               registerData[currentAddress + 4] = newValue & 0xFF; // Low byte
-               // const currentValue = (registerData[currentAddress + 3] << 8) | registerData[currentAddress + 4];
-
-              // Update the displayed value
-              const valueCell = inputElement.parentElement.previousElementSibling;
-              valueCell.innerHTML = newValue;
-            }
-          });
-
-          // You can add logic here to send the updated values to your device
-        });
-
-        const buttonCell = dataTable.insertRow(-1).insertCell(0);
-        buttonCell.colSpan = 3;
-        buttonCell.appendChild(updateButton);
-      }
-
-  function createModbusRTUFrameForIP(slaveId,startAddress,ipAddress) {
-    // Assuming ipAddress is a string in the format "xxx.xxx.xxx.xxx"
-    const ipParts = ipAddress.split('.').map(part => parseInt(part));
-
-    const frame = new Uint8Array(12); // Modify the length accordingly
-
-    // Populate the frame with necessary data
-    frame[0] = slaveId; // Set the slave ID
-    frame[1] = 6; // Function code for writing a single register
-    frame[2] = (startAddress >> 8) & 0xFF;
-    frame[3] = startAddress & 0xFF;
-    frame[4] = ipParts[0]; // Value for the high byte of the IP address (1st octet)
-    frame[5] = ipParts[1]; // Value for the low byte of the IP address (2nd octet)
-    frame[6] = ipParts[2]; // Value for the high byte of the IP address (3rd octet)
-    frame[7] = ipParts[3]; // Value for the low byte of the IP address (4th octet)
-
-    // Calculate CRC and append it to the frame
-    const crc = calculateCRC(frame, frame.length - 2);
-    frame[frame.length - 2] = crc & 0xFF; // Low byte of CRC
-    frame[frame.length - 1] = (crc >> 8) & 0xFF; // High byte of CRC
-
-    return frame;
-  }
-
-  function convertToIPAddress(byteArray) {
-      if (byteArray.length !== 4) {
-        throw new Error('Byte array must contain exactly 4 elements.');
-      }
-
-      return byteArray.join('.');
-    }
-    
-    function updateConfiguration(frame) 
-    {
-
-
-      let modbusDeviceIP  = [];
-      let moduleIPAddress = [];
-      let dnsAddress = [];
-      let gatewayAddress = [];
-      let subnetAddress = [];
-      let protocolBIT = [];
-
-
-      
-      const dataArrays = [modbusDeviceIP, moduleIPAddress, dnsAddress, gatewayAddress, subnetAddress, protocolBIT];
-      console.log('dataArrays.length', dataArrays.length, frame);
-      const startIndexes = [3, 11, 19, 27, 35, 43];
-      for (let i = 0; i < dataArrays.length; i++) {
-        
-        for (let j = 0; j < 4; j++) {
-          dataArrays[i][j] = (frame[startIndexes[i] + j * 2] << 8) | frame[startIndexes[i] + j * 2 + 1];
-          console.log('dataArrays[i][j]:', startIndexes[i] , dataArrays[i][j]);
-        }
-      }
-
-      console.log('Modbus Device IP:', modbusDeviceIP);
-      console.log('Module IP Address:', moduleIPAddress);
-      console.log('DNS Address:', dnsAddress);
-      console.log('Gateway Address:', gatewayAddress);
-      console.log('Subnet Address:', subnetAddress);
-      console.log('protocolBIT:', protocolBIT);
-   
-
-      document.getElementById('ModbusDeviceIP').value = convertToIPAddress(modbusDeviceIP);
-      document.getElementById('moduleIPAddress').value = convertToIPAddress(moduleIPAddress);
-      document.getElementById('dnsAddress').value = convertToIPAddress(dnsAddress);
-      document.getElementById('gatewayAddress').value = convertToIPAddress(gatewayAddress);
-      document.getElementById('subnetAddress').value = convertToIPAddress(subnetAddress);
-      
-      document.getElementById('protocol').value = protocolBIT[0];
-      document.getElementById('DBNum').value = protocolBIT[1];
-      document.getElementById('Rack_PLC').value = protocolBIT[2];
-      document.getElementById('Slot_PLC').value = protocolBIT[3];
-
-     
- 
-    
-    // ... อัปเดตข้อมูล IP address อื่น ๆ ในฟอร์ม ...
-    }
-
- 
-
-
-    connectBtn.addEventListener('click', async () => {
-      try {
-        const selectedBaudRate = parseInt(baudRateSelect.value);
-        port = await navigator.serial.requestPort();
-        await port.open({ baudRate: selectedBaudRate });
-        connectBtn.disabled = true;
-        disconnectBtn.disabled = false;
-        output.textContent += `Connected to Serial Port with Baud Rate: ${selectedBaudRate}\n`;
-        readData();
-      } catch (error) {
-        console.error('Error connecting to Serial Port:', error);
-      }
-    });
-
-    // สร้างฟังก์ชั่นสำหรับคำนวณ CRC16
-      function crc16(buffer) {
-        let crc = 0xFFFF;
-        for (let i = 0; i < buffer.length; i++) {
-          crc ^= buffer[i];
-          for (let j = 0; j < 8; j++) {
-            if ((crc & 0x0001) !== 0) {
-              crc >>= 1;
-              crc ^= 0xA001;
-            } else {
-              crc >>= 1;
-            }
-          }
-        }
-        return crc;
-      }
-      
-      // สร้างฟังก์ชั่นสำหรับคำนวณ CRC16
-        function crc16Write(buffer) {
-          let crc = 0xFFFF;
-          for (let i = 0; i < buffer.length-2; i++) {
-            crc ^= buffer[i];
-            for (let j = 0; j < 8; j++) {
-              if ((crc & 0x0001) !== 0) {
-                crc >>= 1;
-                crc ^= 0xA001;
-              } else {
-                crc >>= 1;
-              }
-            }
-          }
-          return crc;
-        }
-     
-    function createModbusRTUFrameWrite(slaveId, startAddress, values) {
-        const numRegisters = values.length;
-        //console.log("numRegisters", numRegisters);
-        const frameLength = 9 + numRegisters * 2; // Length of frame excluding CRC
-
-        const frame = new Uint8Array(frameLength);
-        frame[0] = slaveId;
-        frame[1] = 0x10;
-        frame[2] = (startAddress >> 8) & 0xFF;
-        frame[3] = startAddress & 0xFF;
-        frame[4] = (numRegisters >> 8) & 0xFF;
-        frame[5] = numRegisters & 0xFF;
-        frame[6] = numRegisters * 2; // Byte count
-
-        for (let i = 0; i < numRegisters; i++) {
-          const value = values[i];
-          const index = 7 + i * 2;
-          frame[index] = (value >> 8) & 0xFF;
-          frame[index + 1] = value & 0xFF;
-        }
-        //console.log(frame);
-        const crc = crc16Write(frame);
-        frame[frameLength - 2] = crc & 0xFF;
-        frame[frameLength - 1] = (crc >> 8) & 0xFF;
-
-        return frame;
-      }
-
-
-
-    function createModbusRTUFrame(slaveAddress, fucntion , startRegister, numRegisters) {
-          console.log(numRegisters);
-          const frame = new Uint8Array(8);
-          frame[0] = slaveAddress;      // Slave Address
-          frame[1] = fucntion;              // Function Code for Read Input Register
-          frame[2] = startRegister >> 8; // High Byte of Start Register
-          frame[3] = startRegister & 0xFF; // Low Byte of Start Register
-          frame[4] = numRegisters >> 8;  // High Byte of Number of Registers
-          frame[5] = numRegisters & 0xFF;  // Low Byte of Number of Registers
-
-          const crc = crc16(frame.subarray(0, 6)); // Calculate CRC16
-          frame[6] = crc & 0xFF; // Low Byte of CRC
-          frame[7] = crc >> 8;   // High Byte of CRC
-
-          return frame;
-        }
-
-
-    disconnectBtn.addEventListener('click', async () => {
-      
-      if (port) {
-        
-        const writer = port.writable.getWriter();
-        const encoder = new TextEncoder();
-        
-        // writer.write("A long message that will take...");
-        const data = encoder.encode("A long message that will take..." + '\n');
-          
-        output.textContent += new TextDecoder().decode(data);
-        
-        await port.writable.getWriter().close();
-        await port.close();
-        // await port.writable.cancel();
-        // await writer.close();
-        await port.readable.getReader().close();
-        
-        port = null;
-        connectBtn.disabled = false;
-        disconnectBtn.disabled = true;
-        output.textContent += 'Disconnected from Serial Port.\n';
-      }
-    });
-
-    async function readData() 
-    {
-      while (port && port.readable) {
-        const reader = port.readable.getReader();
-        try {
-          while (true) {
-            const { value, done } = await reader.read();
-            if (done) break;
-          
-            displayFrameBytesRev(value);
-          }
-        } catch (error) {
-          console.error('Error reading data:', error);
-        } finally {
-          reader.releaseLock();
-        }
-      }
-    }
-
-    // สร้างฟังก์ชั่นสำหรับแสดงข้อมูลแต่ละ byte ใน frame
-      function displayFrameBytesSend(frame) {
-        let frameStr = "\n Frame send : ";
-        for (let i = 0; i < frame.length; i++) {
-          frameStr += frame[i].toString(16).padStart(2, '0') + " ";
-        }
-        console.log(frameStr);
-        output.textContent += frameStr;
-         // ตั้งค่า scrollbar ให้เลื่อนมาที่ล่างสุด
-        output.scrollTop = output.scrollHeight;
-      }
-
-      function displayFrameBytesRev(frame) {
-          let frameStr = "\n Frame rev : ";
-          for (let i = 0; i < frame.length; i++) {
-            frameStr += frame[i].toString(16).padStart(2, '0') + " ";
-          }
-         // console.log(frameStr);
-          output.textContent += frameStr;
-          // ตั้งค่า scrollbar ให้เลื่อนมาที่ล่างสุด
-         output.scrollTop = output.scrollHeight;
-         if(onloadConfig)
-         {
-           updateConfiguration(frame);
-           onloadConfig = false;
-         }
-         updateDataTable(frame);
-
-        
-        }
-
-
-    sendReadInput.addEventListener('click', async () => {
-      if (port) {
-        const writer = port.writable.getWriter();
-        const encoder = new TextEncoder();
-        const fucntion = 0x04;
-        const slaveId = parseInt(document.getElementById('slaveId').value);
-        const startAddress = parseInt(document.getElementById('startAddress').value);
-        const numRegisters = parseInt(document.getElementById('numRegisters').value);
-
-
-        const frame = createModbusRTUFrame(slaveId, fucntion, startAddress, numRegisters);
-        console.log('frame', frame);
-        displayFrameBytesSend(frame); 
-     
-      
-        await writer.write(frame);
-        writer.releaseLock();
-       
-       //  output.value = '';
-      }
-    });
-
-      // Calculate CRC (Cyclic Redundancy Check) for Modbus RTU
-        function calculateCRC(buffer) {
-          let crc = 0xFFFF;
-          for (const byte of buffer) {
-            crc ^= byte;
-            for (let i = 0; i < 8; i++) {
-              if (crc & 0x0001) {
-                crc >>= 1;
-                crc ^= 0xA001;
-              } else {
-                crc >>= 1;
-              }
-            }
-          }
-          return crc;
-        }
-     
-
-      sendReadHolding.addEventListener('click', async () => {
-          if (port) {
-            const writer = port.writable.getWriter();
-            
-            const fucntion = 0x03;
-            const slaveId = parseInt(document.getElementById('slaveId').value);
-            const startAddress = parseInt(document.getElementById('startAddress').value);
-            const numRegisters = parseInt(document.getElementById('numRegisters').value);
-         
-
-            const frame = createModbusRTUFrame(slaveId, fucntion, startAddress, numRegisters);
-            console.log('frame', frame);
-            displayFrameBytesSend(frame);
-
-
-            await writer.write(frame);
-            writer.releaseLock();
-
-            // input.value = '';
-          }
-        });
-
-
-        sendWriteMultiple.addEventListener('click', async () => {
-            if (port) {
-              const writer = port.writable.getWriter();
-
-          
-              const slaveId = parseInt(document.getElementById('slaveId').value);
-              const startAddress = parseInt(document.getElementById('startAddress').value);
-           
-              const values = [];
-              // Loop through the table rows and extract values from newValueCell
-              const dataTable = document.getElementById('dataTable');
-              for (let row = 1; row < dataTable.rows.length-1; row++) {
-                const newValueCell = dataTable.rows[row].cells[2];
-                console.log(newValueCell);
-                const newValue = parseInt(newValueCell.firstChild.value);
-              
-                
-                values.push(newValue);
-              }
-
-
-              const frame = createModbusRTUFrameWrite(slaveId, startAddress, values);
-             // const frame = createModbusRTUFrame(slaveId, startAddress, values, numRegisters);
-              
-              console.log('frame', frame);
-              displayFrameBytesSend(frame);
-
-
-              await writer.write(frame);
-              writer.releaseLock();
-
-              // input.value = '';
-            }
-          });
-
-          
-            loadConfigButton.addEventListener('click', async () => {
-              // ทำงานเมื่อปุ่ม "Load Configuration" ถูกคลิก
-              // เช่น อ่านค่าจากการตั้งค่าที่บันทึกและแสดงในฟอร์ม
-             
-              console.log("loadConfigButton");
-               if (port) {
-                const writer = port.writable.getWriter();
-
-                const fucntion = 0x03;
-                const slaveId = parseInt(document.getElementById('slaveId').value);
-                const startAddress = 0;
-                const numRegisters = 24;
-
-
-                const frame = createModbusRTUFrame(slaveId, fucntion, startAddress, numRegisters);
-                console.log('frame', frame);
-                displayFrameBytesSend(frame);
-
-
-                await writer.write(frame);
-                writer.releaseLock();
-                 onloadConfig = true;
-                // input.value = '';  
-              }
-
-
-
-            });
-        
-          configForm.addEventListener('submit', async () => {
-            event.preventDefault(); // Prevent the form from submitting normally
-
-            const ModbusDeviceIP = document.getElementById('ModbusDeviceIP').value;
-            const moduleIPAddress = document.getElementById('moduleIPAddress').value;
-            const dnsAddress = document.getElementById('dnsAddress').value;
-            const gatewayAddress = document.getElementById('gatewayAddress').value;
-            const subnetAddress = document.getElementById('subnetAddress').value;
-            const protocol = document.getElementById('protocol').value;
-            const DBNum = document.getElementById('DBNum').value;
-            const Rack_PLC = document.getElementById('Rack_PLC').value;
-            const Slot_PLC = document.getElementById('Slot_PLC').value;
-
-            if (port) {
-              const writer = port.writable.getWriter();
-
-
-              const slaveId = parseInt(document.getElementById('slaveId').value);
-              let startAddress = parseInt(document.getElementById('startAddress').value);
-
-              let values = [];
-              // Loop through the table rows and extract values from newValueCell
-            
-            
-            
-              startAddress = 0;
-              let frame = createModbusRTUFrameWrite(slaveId, startAddress, ModbusDeviceIP.match(/\d+/g));
-              displayFrameBytesSend(frame);
-              await writer.write(frame);
-              await new Promise(resolve => setTimeout(resolve, 200)); // รอสักครู่ก่อนส่งต่อ
-
-              startAddress = startAddress + 4 ;
-              frame = createModbusRTUFrameWrite(slaveId, startAddress, moduleIPAddress.match(/\d+/g));
-              displayFrameBytesSend(frame);
-              await writer.write(frame);
-              await new Promise(resolve => setTimeout(resolve, 200)); // รอสักครู่ก่อนส่งต่อ
-
-              startAddress = startAddress + 4;
-              frame = createModbusRTUFrameWrite(slaveId, startAddress, dnsAddress.match(/\d+/g));
-              displayFrameBytesSend(frame);
-              await writer.write(frame);
-              await new Promise(resolve => setTimeout(resolve, 200)); // รอสักครู่ก่อนส่งต่อ
-
-              startAddress = startAddress + 4;
-              frame = createModbusRTUFrameWrite(slaveId, startAddress, gatewayAddress.match(/\d+/g));
-              displayFrameBytesSend(frame);
-              await writer.write(frame);
-              await new Promise(resolve => setTimeout(resolve, 200)); // รอสักครู่ก่อนส่งต่อ
-
-              startAddress = startAddress + 4;
-              frame = createModbusRTUFrameWrite(slaveId, startAddress, subnetAddress.match(/\d+/g));
-              displayFrameBytesSend(frame);
-              await writer.write(frame);
-              await new Promise(resolve => setTimeout(resolve, 200)); // รอสักครู่ก่อนส่งต่อ
-
-              values = [protocol, DBNum, Rack_PLC, Slot_PLC];
-              console.log(values);
-              startAddress = startAddress + 4;
-              frame = createModbusRTUFrameWrite(slaveId, startAddress, values);
-              displayFrameBytesSend(frame);
-              await writer.write(frame);
-              await new Promise(resolve => setTimeout(resolve, 100)); // รอสักครู่ก่อนส่งต่อ
-
-
-              writer.releaseLock();
-
-              // input.value = '';
-            }
-          });
-
   </script>
+
+  <script src="script.js"></script>
 </body>
 
 </html>

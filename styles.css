@@ -1,71 +1,103 @@
-#terminal div {
-    color: gray;
-}
+ #terminal div {
+     color: gray;
+ }
 
-#terminal div.out {
-    color: red;
-}
+ #terminal div.out {
+     color: red;
+ }
 
-#terminal div.in {
-    color: blue;
-}
+ #terminal div.in {
+     color: blue;
+ }
 
 
-.input-group {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-}
+ .input-group {
+     display: flex;
+     align-items: center;
+     margin-bottom: 10px;
+ }
 
-.input-group label {
-    flex: 1;
-    margin-right: 10px;
-}
+ .input-group label {
+     flex: 1;
+     margin-right: 10px;
+ }
 
-.input-group input {
-    flex: 2;
-    width: 100%;
-    /* ทำให้ความยาวของ Input เต็มขอบ */
-}
+ .input-group input {
+     flex: 2;
+     width: 100%;
+     /* ทำให้ความยาวของ Input เต็มขอบ */
+ }
 
-body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
-}
 
-h2 {
-    margin-bottom: 10px;
-}
+ body {
+     font-family: Arial, sans-serif;
+     margin: 20px;
+ }
 
-form {
-    border: 1px solid #ccc;
-    padding: 20px;
-    border-radius: 5px;
-    width: 400px;
-    margin: 0 auto;
-}
+ h2 {
+     margin-bottom: 10px;
+ }
 
-label {
-    display: block;
-    margin-bottom: 5px;
-}
+ form {
+     border: 1px solid #ccc;
+     padding: 20px;
+     border-radius: 5px;
+     width: 400px;
+     margin: 0 auto;
+ }
 
-input[type="text"],
-input[type="number"] {
-    width: 100%;
-    padding: 5px;
-    margin-bottom: 10px;
-}
+ label {
+     display: block;
+     margin-bottom: 5px;
+ }
 
-input[type="submit"] {
-    background-color: #4CAF50;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
+ input[type="text"],
+ input[type="number"] {
+     width: 100%;
+     padding: 5px;
+     margin-bottom: 10px;
+ }
 
-input[type="submit"]:hover {
-    background-color: #45a049;
-}
+ input[type="submit"] {
+     background-color: #4CAF50;
+     color: white;
+     padding: 10px 20px;
+     border: none;
+     border-radius: 5px;
+     cursor: pointer;
+ }
+
+ input[type="submit"]:hover {
+     background-color: #45a049;
+ }
+
+ #loadConfigButton {
+     background-color: red;
+     color: white;
+     padding: 10px 20px;
+     border: none;
+     border-radius: 5px;
+     cursor: pointer;
+ }
+
+ #loadConfigButton:hover {
+     background-color: darkred;
+ }
+
+ .tab-button {
+     background-color: #f2f2f2;
+     border: none;
+     outline: none;
+     cursor: pointer;
+     padding: 10px 20px;
+     font-size: 16px;
+ }
+
+ .tab-button:hover {
+     background-color: #ddd;
+ }
+
+ .tab-content {
+     display: none;
+     padding: 20px;
+ }
